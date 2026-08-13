@@ -264,51 +264,68 @@ watch(
 </script>
 <template>
   <div class="pokemon">
-    <h1>Lista di Pokémon</h1>
+    <h1 class="page-title">Lista di Pokémon</h1>
   </div>
 
-  <main>
-    <label for="pokemon-filter"> Filtra questa pagina: </label>
-    <input
-      id="pokemon-filter"
-      v-model="filterTerm"
-      type="search"
-      placeholder="Filtra i 20 pokemon visibili"
-    />
-
-    <label for="pokemon-type">Filtra per tipo:</label>
-    <select
-      id="pokemon-type"
-      v-model="selectedType"
+  <main class="page-shell pokemon-page">
+    <section
+      class="search-panel"
+      aria-label="Ricerca e filtri Pokémon"
     >
-      <option value="">Tutti i tipi</option>
-      <option
-        v-for="type in availableTypes"
-        :key="type"
-        :value="type"
+      <div class="filter-grid">
+        <label class="field" for="pokemon-filter">
+          <span>Filtra questa pagina</span>
+          <input
+            id="pokemon-filter"
+            v-model="filterTerm"
+            type="search"
+            placeholder="Filtra i 20 Pokémon visibili"
+          />
+        </label>
+
+        <label class="field" for="pokemon-type">
+          <span>Filtra per tipo</span>
+          <select
+            id="pokemon-type"
+            v-model="selectedType"
+          >
+            <option value="">Tutti i tipi</option>
+            <option
+              v-for="type in availableTypes"
+              :key="type"
+              :value="type"
+            >
+              {{ type }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <button
+        class="button button--secondary"
+        type="button"
+        :disabled="!filterTerm && !selectedType"
+        @click="clearFilters"
       >
-        {{ type }}
-      </option>
-    </select>
+        Azzera filtri
+      </button>
 
-    <button
-      type="button"
-      :disabled="!filterTerm && !selectedType"
-      @click="clearFilters"
-    >
-      Azzera filtri
-    </button>
-
-    <form @submit.prevent="searchPokemon">
-      <label for="pokemon-search">Cerca un Pokémon: </label>
-      <input
-        id="pokemon-search"
-        v-model="searchTerm"
-        type="search"
-        placeholder="Cerca un pokemon..."
-      />
-      <button type="submit">Cerca in tutti i pokemon</button>
-    </form>
+      <form
+        class="global-search"
+        @submit.prevent="searchPokemon"
+      >
+        <label class="field" for="pokemon-search">
+          <span>Cerca un Pokémon in tutta l'API</span>
+          <input
+            id="pokemon-search"
+            v-model="searchTerm"
+            type="search"
+            placeholder="Es. pikachu"
+          />
+        </label>
+        <button type="submit">Cerca Pokémon</button>
+      </form>
+    </section>
 
     <PokemonPagination
       :current-page="currentPage"
@@ -319,8 +336,16 @@ watch(
       @next="nextPage"
     />
 
-    <p v-if="loading">Caricamento in corso...</p>
-    <div v-else-if="error">
+    <p
+      v-if="loading"
+      class="status-message"
+    >
+      Caricamento in corso...
+    </p>
+    <div
+      v-else-if="error"
+      class="status-message"
+    >
       <p>{{ error }}</p>
       <button
         type="button"
@@ -337,8 +362,16 @@ watch(
         {{ filteredPokemon.length }} Pokemon visualizzati in questa pagina.
       </p>
 
-      <p v-if="filteredPokemon.length === 0">Nessun Pokémon trovato.</p>
-      <ul v-else>
+      <p
+        v-if="filteredPokemon.length === 0"
+        class="empty-state"
+      >
+        Nessun Pokémon trovato.
+      </p>
+      <ul
+        v-else
+        class="pokemon-grid"
+      >
         <PokemonCard
           v-for="poke in filteredPokemon"
           :key="poke.name"
@@ -356,11 +389,7 @@ watch(
 </template>
 
 <style scoped>
-@media (min-width: 1024px) {
-  .pokemon {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
+.pokemon {
+  padding: 1rem 0 0.25rem;
 }
 </style>

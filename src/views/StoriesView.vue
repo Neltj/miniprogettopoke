@@ -1,9 +1,9 @@
 <script lang="ts" setup></script>
 
 <template>
-  <div class="stories">
-    <h1>Lavorare nel mondo tech è sapere tutto questo mi rende magnifico</h1>
-  </div>
+  <main class="page-shell stories">
+    <h1 class="page-title">Nessun sistema è sicuro, rimane solo il fidate</h1>
+  </main>
 </template>
 
 <style scoped>

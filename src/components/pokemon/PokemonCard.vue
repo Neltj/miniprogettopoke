@@ -39,117 +39,67 @@ const emit = defineEmits<{
       :alt="props.name"
     />
 
-    <button
-      type="button"
-      @click="emit('select', name)"
-    >
-      Dettagli
-    </button>
-    <button
-      type="button"
-      :aria-pressed="favorite"
-      @click="emit('toggle-favorite', name)"
-    >
-      {{ favorite ? '★ Rimuovi dai preferiti' : '☆ Aggiungi ai preferiti' }}
-    </button>
+    <div class="pokemon-card__actions">
+      <button
+        type="button"
+        @click="emit('select', name)"
+      >
+        Dettagli
+      </button>
+      <button
+        class="button--secondary"
+        type="button"
+        :aria-pressed="favorite"
+        @click="emit('toggle-favorite', name)"
+      >
+        {{ favorite ? '★ Rimuovi dai preferiti' : '☆ Aggiungi ai preferiti' }}
+      </button>
+    </div>
   </li>
 </template>
 
 <style scoped>
 .pokemon-card {
-  border: 1px solid #ccc;
-  padding: 16px;
-  margin: 16px;
-  border-radius: 8px;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: 0 0.75rem 1.5rem var(--color-shadow);
+  text-align: center;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.pokemon-type {
-  color: white;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
+.pokemon-card:hover {
+  transform: translateY(-0.25rem);
+  box-shadow: 0 1rem 2rem var(--color-shadow);
+}
+
+.pokemon-card h2 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 1.25rem;
   text-transform: capitalize;
-}
-
-.pokemon-type--fire {
-  background-color: #e25822;
-}
-
-.pokemon-type--water {
-  background-color: #3b82f6;
-}
-
-.pokemon-type--grass {
-  background-color: #3f9c35;
-}
-
-.pokemon-type--electric {
-  background-color: #d9a400;
 }
 
 .pokemon-types {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0;
-  list-style: none;
+  min-height: 1.75rem;
 }
 
-.pokemon-type--bug {
-  background-color: #8f9d1a;
-}
-
-.pokemon-type--dark {
-  background-color: #4b4b4b;
-}
-
-.pokemon-type--dragon {
-  background-color: #6f35fc;
-}
-
-.pokemon-type--fairy {
-  background-color: #d685ad;
-}
-
-.pokemon-type--fighting {
-  background-color: #c22e28;
-}
-
-.pokemon-type--flying {
-  background-color: #a98ff3;
-}
-
-.pokemon-type--ghost {
-  background-color: #735797;
-}
-
-.pokemon-type--ground {
-  background-color: #e2bf65;
-  color: #222;
-}
-
-.pokemon-type--ice {
-  background-color: #96d9d6;
-  color: #222;
-}
-
-.pokemon-type--normal {
-  background-color: #a8a77a;
-}
-
-.pokemon-type--poison {
-  background-color: #a33ea1;
-}
-
-.pokemon-type--psychic {
-  background-color: #f95587;
-}
-
-.pokemon-type--rock {
-  background-color: #b6a136;
-}
-
-.pokemon-type--steel {
-  background-color: #b7b7ce;
-  color: #222;
+.pokemon-card__actions {
+  display: grid;
+  width: 100%;
+  gap: 0.5rem;
+  margin-top: auto;
 }
 </style>

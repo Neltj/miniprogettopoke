@@ -1,7 +1,7 @@
 <template>
-  <div class="about">
-    <h1>Que non iguales, como que compare, banda famigliare ilegale</h1>
-  </div>
+  <main class="page-shell about">
+    <h1 class="page-title">El truco es no tener hambre solo para comer.</h1>
+  </main>
 </template>
 
 <style scoped>

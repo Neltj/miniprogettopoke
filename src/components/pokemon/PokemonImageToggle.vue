@@ -19,30 +19,43 @@ const displayImage = computed(() => {
 </script>
 
 <template>
-  <img
-    v-if="displayImage"
-    :class="['pokemon-image', `pokemon-image--${props.variant}`]"
-    :src="displayImage"
-    :alt="alt"
-  />
-  <p v-else>No image available</p>
-  <button
-    type="button"
-    :disabled="!props.shinyImage"
-    :aria-pressed="isShiny"
-    @click="isShiny = !isShiny"
-  >
-    {{ isShiny ? 'Mostra versione normale' : 'Mostra versione shiny' }}
-  </button>
+  <div class="pokemon-image-toggle">
+    <img
+      v-if="displayImage"
+      :class="['pokemon-image', `pokemon-image--${props.variant}`]"
+      :src="displayImage"
+      :alt="alt"
+    />
+    <p v-else>No image available</p>
+    <button
+      class="button button--secondary"
+      type="button"
+      :disabled="!props.shinyImage"
+      :aria-pressed="isShiny"
+      @click="isShiny = !isShiny"
+    >
+      {{ isShiny ? 'Mostra versione normale' : 'Mostra versione shiny' }}
+    </button>
+  </div>
 </template>
 <style scoped>
+.pokemon-image-toggle {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
 .pokemon-image {
   display: block;
+  width: min(100%, 10rem);
+  aspect-ratio: 1;
+  object-fit: contain;
   image-rendering: pixelated;
 }
 
 .pokemon-image--detail {
-  width: 12rem;
-  height: 12rem;
+  width: clamp(10rem, 45vw, 16rem);
+  height: auto;
 }
 </style>

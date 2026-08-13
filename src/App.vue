@@ -3,7 +3,7 @@ import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
-  <header>
+  <header class="app-header">
     <img
       alt="pokelogo"
       class="logo"
@@ -12,10 +12,10 @@ import { RouterLink, RouterView } from 'vue-router'
       height="125"
     />
 
-    <div class="wrapper">
-      <h1>PokeAPP-Neltuso</h1>
+    <div class="app-header__inner">
+      <h1>PokeNeltusoAPP</h1>
 
-      <nav>
+      <nav class="app-nav">
         <RouterLink to="/home">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
         <RouterLink to="/experiments">Experiments</RouterLink>
@@ -32,19 +32,26 @@ import { RouterLink, RouterView } from 'vue-router'
 <style scoped>
 header {
   line-height: 1.5;
-  max-height: 100vh;
+  padding: 1rem;
 }
 
 .logo {
   display: block;
-  margin: 0 auto 2rem;
+  width: clamp(5rem, 18vw, 7.5rem);
+  height: auto;
+  margin: 0 auto 1rem;
+  border-radius: 1rem;
 }
 
 nav {
   width: 100%;
-  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 nav a.router-link-exact-active {
@@ -57,38 +64,41 @@ nav a.router-link-exact-active:hover {
 
 nav a {
   display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
 }
 
 @media (min-width: 1024px) {
   header {
     display: flex;
     place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+    gap: 1.5rem;
+    padding: 1rem 1.5rem;
   }
 
   .logo {
-    margin: 0 2rem 0 0;
+    margin: 0;
   }
 
-  header .wrapper {
+  header .app-header__inner {
     display: flex;
     place-items: flex-start;
     flex-wrap: wrap;
+    flex: 1;
   }
 
   nav {
     text-align: left;
-    margin-left: -1rem;
+    justify-content: flex-start;
     font-size: 1rem;
-
-    padding: 1rem 0;
     margin-top: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  nav a {
+    flex: 1 1 calc(50% - 0.35rem);
   }
 }
 </style>

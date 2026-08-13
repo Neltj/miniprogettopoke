@@ -3,10 +3,11 @@ import { RouterLink } from 'vue-router'
 </script>
 
 <template>
-  <main>
-    <h1>Errore 404 -Page not found-</h1>
-    <h1>La pagina non esiste</h1>
+  <main class="page-shell not-found-page">
+    <h1 class="page-title">Errore 404: pagina non trovata</h1>
+    <p>La pagina richiesta non esiste.</p>
     <RouterLink
+      class="back-link"
       :to="{
         name: 'home',
       }"

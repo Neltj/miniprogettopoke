@@ -55,19 +55,33 @@ watch(favoriteNames, loadFavoritePokemon, { immediate: true })
 </script>
 
 <template>
-  <main>
-    <h1>Pokemon preferiti</h1>
-    <p v-if="favoriteNames.length > 0">Hai {{ favoriteNames.length }} Pokémon preferiti.</p>
+  <main class="page-shell favorites-page">
+    <h1 class="page-title">Pokémon preferiti</h1>
+    <p
+      v-if="favoriteNames.length > 0"
+      class="results-count"
+    >
+      Hai {{ favoriteNames.length }} Pokémon preferiti.
+    </p>
     <button
       v-if="favoriteNames.length > 0"
+      class="button button--secondary"
       type="button"
       @click="confirmClearFavorites"
     >
       Rimuovi i preferiti
     </button>
-    <p v-if="loading">Caricamento dei preferiti</p>
+    <p
+      v-if="loading"
+      class="status-message"
+    >
+      Caricamento dei preferiti
+    </p>
 
-    <div v-else-if="error">
+    <div
+      v-else-if="error"
+      class="status-message"
+    >
       <p>{{ error }}</p>
 
       <button
@@ -78,8 +92,16 @@ watch(favoriteNames, loadFavoritePokemon, { immediate: true })
       </button>
     </div>
 
-    <p v-else-if="favoriteNames.length === 0">Non hai Pokemon preferiti</p>
-    <ul v-else>
+    <p
+      v-else-if="favoriteNames.length === 0"
+      class="empty-state"
+    >
+      Non hai Pokémon preferiti
+    </p>
+    <ul
+      v-else
+      class="pokemon-grid"
+    >
       <PokemonCard
         v-for="pokemon in sortedFavoritePokemon"
         :key="pokemon.name"

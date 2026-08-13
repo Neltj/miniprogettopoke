@@ -34,6 +34,15 @@
   --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-accent: #f59e0b;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-shadow: rgba(15, 23, 42, 0.1);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -47,6 +56,9 @@
 
     --color-heading: var(--vt-c-text-dark-1);
     --color-text: var(--vt-c-text-dark-2);
+    --color-surface: var(--vt-c-black-soft);
+    --color-surface-muted: var(--vt-c-black-mute);
+    --color-shadow: rgba(0, 0, 0, 0.25);
   }
 }
 
@@ -58,10 +70,37 @@
   font-weight: normal;
 }
 
+html {
+  min-width: 320px;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+ul,
+ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   min-height: 100vh;
   color: var(--color-text);
-  background: var(--color-background);
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.1), transparent 32rem),
+    var(--color-background);
   transition:
     color 0.5s,
     background-color 0.5s;
@@ -83,4 +122,15 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-heading);
+  line-height: 1.2;
+}
+
+a {
+  color: var(--color-primary-dark);
 }

@@ -1,9 +1,9 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="experiments">
-    <h1>La situa è troppo strana, contratto spagnolo llama, arriva californiana</h1>
-  </div>
+  <main class="page-shell experiments">
+    <h1 class="page-title">La situa è troppo strana, contratto spagnolo llama, arriva californiana</h1>
+  </main>
 </template>
 
 <style scoped>

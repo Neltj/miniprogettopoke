@@ -79,8 +79,9 @@ onMounted(loadPokemonDetails)
 </script>
 
 <template>
-  <main>
+  <main class="page-shell detail-page">
     <RouterLink
+      class="back-link"
       v-if="cameFromFavorites"
       :to="{
         name: 'favorites',
@@ -90,6 +91,7 @@ onMounted(loadPokemonDetails)
     </RouterLink>
 
     <RouterLink
+      class="back-link"
       v-else
       :to="{
         name: 'pokemons',
@@ -103,8 +105,16 @@ onMounted(loadPokemonDetails)
       Torna alla lista
     </RouterLink>
 
-    <p v-if="loading">Caricamento in corso...</p>
-    <div v-else-if="error">
+    <p
+      v-if="loading"
+      class="status-message"
+    >
+      Caricamento in corso...
+    </p>
+    <div
+      v-else-if="error"
+      class="status-message"
+    >
       <p>{{ error }}</p>
       <button
         v-if="canRetry"
@@ -114,8 +124,11 @@ onMounted(loadPokemonDetails)
         Riprova
       </button>
     </div>
-    <section v-else-if="pokemon">
-      <h1>Dettaglio di {{ name }}</h1>
+    <section
+      v-else-if="pokemon"
+      class="pokemon-details"
+    >
+      <h1 class="page-title">Dettaglio di {{ name }}</h1>
       <PokemonImageToggle
         variant="detail"
         :normal-image="pokemon.sprites.front_default"
@@ -128,16 +141,21 @@ onMounted(loadPokemonDetails)
 
       <h2>Tipi</h2>
 
-      <ul>
+      <ul class="pokemon-details__types">
         <li
           v-for="pokemonType in pokemon.types"
           :key="pokemonType.type.name"
+          :class="[
+            'pokemon-type',
+            `pokemon-type--${pokemonType.type.name}`,
+          ]"
         >
           {{ pokemonType.type.name }}
         </li>
       </ul>
 
       <button
+        class="button"
         type="button"
         :aria-pressed="favorite"
         @click="toggleFavorite(props.name)"
@@ -149,13 +167,40 @@ onMounted(loadPokemonDetails)
 </template>
 
 <style scoped>
-main {
-  padding: 2rem;
+.detail-page {
+  display: grid;
+  gap: 1.25rem;
 }
 
-section {
+.back-link {
+  justify-self: start;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  font-weight: 650;
+}
+
+.pokemon-details {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.pokemon-details h1 {
+  margin-bottom: 0;
+  text-transform: capitalize;
+}
+
+.pokemon-details__types {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pokemon-details__types li {
+  font-weight: 650;
 }
 </style>
