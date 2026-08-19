@@ -26,6 +26,15 @@ export interface PokemonType {
   }
 }
 
+export interface PokemonStat {
+  base_stat: number
+  effort: number
+  stat: {
+    name: string
+    url: string
+  }
+}
+
 export interface PokemonDetailsResponse {
   name: string
   height: number
@@ -35,4 +44,56 @@ export interface PokemonDetailsResponse {
     front_shiny: string | null
   }
   types: PokemonType[]
+  abilities: PokemonAbility[]
+  stats: PokemonStat[]
+}
+
+export interface PokemonAbility {
+  is_hidden: boolean
+  slot: number
+  ability: {
+    name: string
+    url: string
+  }
+}
+
+export interface PokemonFlavorTextEntry {
+  flavor_text: string
+  language: {
+    name: string
+    url: string
+  }
+  version: {
+    name: string
+    url: string
+  }
+}
+
+export interface PokemonGenusEntry {
+  genus: string
+  language: {
+    name: string
+    url: string
+  }
+}
+
+export interface PokemonSpeciesResponse {
+  name: string
+  flavor_text_entries: PokemonFlavorTextEntry[]
+  genera: PokemonGenusEntry[]
+  evolution_chain: {
+    url: string
+  }
+}
+
+export interface EvolutionNode {
+  species: {
+    name: string
+    url: string
+  }
+  evolves_to: EvolutionNode[]
+}
+
+export interface EvolutionChainResponse {
+  chain: EvolutionNode
 }

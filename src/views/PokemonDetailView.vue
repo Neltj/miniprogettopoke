@@ -1,17 +1,32 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import type { PokemonDetailsResponse } from '@/types/pokemonTypes'
-import { getPokemonDetails, PokemonApiError } from '@/services/pokemonApi'
+import type {
+  PokemonDetailsResponse,
+  PokemonSpeciesResponse,
+  EvolutionChainResponse,
+  EvolutionNode,
+} from '@/types/pokemonTypes'
+import {
+  getPokemonDetails,
+  getPokemonSpecies,
+  PokemonApiError,
+  getEvolutionChain,
+} from '@/services/pokemonApi'
 import { usePokemonFavorites } from '@/composables/usePokemonFavorites'
 import { useAsyncState } from '@/composables/useAsyncState'
 import PokemonImageToggle from '@/components/pokemon/PokemonImageToggle.vue'
 
 const { data: pokemon, loading, error, execute } = useAsyncState<PokemonDetailsResponse>()
 
+const species = ref<PokemonSpeciesResponse | null>(null)
+const evolutionChain = ref<EvolutionChainResponse | null>(null)
+
 const props = defineProps<{
   name: string
 }>()
+
+const MAX_BASE_STAT = 255
 
 const { isFavorite, toggleFavorite } = usePokemonFavorites()
 
@@ -21,6 +36,66 @@ const favorite = computed(() => {
 
 const canRetry = ref<boolean>(false)
 const route = useRoute()
+
+function clearFlavorText(text: string): string {
+  return text
+    .replace(/[\n\f\r]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+const description = computed(() => {
+  const entries = species.value?.flavor_text_entries ?? []
+
+  const italianEntry = entries.find((entry) => {
+    return entry.language.name === 'it'
+  })
+
+  const englishEntry = entries.find((entry) => {
+    return entry.language.name === 'en'
+  })
+
+  const selectedEntry = italianEntry ?? englishEntry ?? entries[0]
+
+  if (!selectedEntry) {
+    return 'Descrizione non disponibile'
+  }
+
+  return clearFlavorText(selectedEntry.flavor_text)
+})
+
+const pokemonCategory = computed(() => {
+  const entries = species.value?.genera ?? []
+
+  const italianEntry = entries.find((entry) => {
+    return entry.language.name === 'it'
+  })
+
+  const englishEntry = entries.find((entry) => {
+    return entry.language.name === 'en'
+  })
+
+  return (
+    italianEntry?.genus ?? englishEntry?.genus ?? entries[0]?.genus ?? 'Categoria non disponibile'
+  )
+})
+
+function flattenEvolutionChain(node: EvolutionNode): string[] {
+  const currentName = node.species.name
+
+  const nextNames = node.evolves_to.flatMap((child) => {
+    return flattenEvolutionChain(child)
+  })
+
+  return [currentName, ...nextNames]
+}
+
+const evolutionNames = computed(() => {
+  if (!evolutionChain.value) {
+    return []
+  }
+  return flattenEvolutionChain(evolutionChain.value.chain)
+})
 
 function getPokemonDetailsError(error: unknown): string {
   if (error instanceof PokemonApiError && error.status === 404) {
@@ -67,8 +142,19 @@ const returnType = computed(() => {
 async function loadPokemonDetails() {
   canRetry.value = false
   await execute(
-    () => {
-      return getPokemonDetails(props.name)
+    async () => {
+      const [pokemonData, speciesData] = await Promise.all([
+        getPokemonDetails(props.name),
+        getPokemonSpecies(props.name),
+      ])
+
+      species.value = speciesData
+
+      const evolutionData = await getEvolutionChain(speciesData.evolution_chain.url)
+
+      evolutionChain.value = evolutionData
+
+      return pokemonData
     },
 
     getPokemonDetailsError,
@@ -136,6 +222,31 @@ onMounted(loadPokemonDetails)
         :alt="`Immagine di ${pokemon.name}`"
       />
 
+      <section class="pokemon-description">
+        <h2>Descrizione</h2>
+        <p>{{ description }}</p>
+      </section>
+
+      <p class="pokemon-category">
+        <strong>Categoria:</strong>
+        {{ pokemonCategory }}
+      </p>
+
+      <ul
+        v-if="evolutionNames.length > 0"
+        class="pokemon-evolution"
+      >
+        <h2>Catena evolutiva</h2>
+        <ul>
+          <li
+            v-for="evolutionName in evolutionNames"
+            :key="evolutionName"
+          >
+            {{ evolutionName }}
+          </li>
+        </ul>
+      </ul>
+
       <p>Altezza: {{ pokemon.height / 10 }} m</p>
       <p>Peso: {{ pokemon.weight / 10 }} kg</p>
 
@@ -145,12 +256,43 @@ onMounted(loadPokemonDetails)
         <li
           v-for="pokemonType in pokemon.types"
           :key="pokemonType.type.name"
-          :class="[
-            'pokemon-type',
-            `pokemon-type--${pokemonType.type.name}`,
-          ]"
+          :class="['pokemon-type', `pokemon-type--${pokemonType.type.name}`]"
         >
           {{ pokemonType.type.name }}
+        </li>
+      </ul>
+
+      <h2>Abilità</h2>
+      <ul>
+        <li
+          v-for="pokemonAbility in pokemon.abilities"
+          :key="pokemonAbility.ability.name"
+        >
+          {{ pokemonAbility.ability.name }}
+
+          <span v-if="pokemonAbility.is_hidden"> (abilità nascosta) </span>
+        </li>
+      </ul>
+
+      <h2>Statistiche base</h2>
+      <ul class="pokemon-stats">
+        <li
+          v-for="pokemonStat in pokemon.stats"
+          :key="pokemonStat.stat.name"
+          class="pokemon-stat"
+        >
+          <div class="pokemon-stat__header">
+            <span>{{ pokemonStat.stat.name }}</span>
+            <strong>{{ pokemonStat.base_stat }}</strong>
+          </div>
+          <progress
+            class="pokemon-stat__bar"
+            :value="pokemonStat.base_stat"
+            :max="MAX_BASE_STAT"
+            :aria-label="`Statistica ${pokemonStat.stat.name}`"
+          >
+            {{ pokemonStat.base_stat }}
+          </progress>
         </li>
       </ul>
 
@@ -202,5 +344,48 @@ onMounted(loadPokemonDetails)
 
 .pokemon-details__types li {
   font-weight: 650;
+}
+
+.pokemon-stats {
+  display: grid;
+  width: min(100%, 32rem);
+  gap: 0.85rem;
+}
+
+.pokemon-stat {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.pokemon-stat__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  text-transform: capitalize;
+}
+
+.pokemon-stat__bar {
+  width: 100%;
+  height: 0.7rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background-color: var(--color-background-mute);
+  accent-color: var(--color-primary);
+}
+
+.pokemon-stat__bar::-webkit-progress-bar {
+  border-radius: inherit;
+  background: var(--color-background-mute);
+}
+
+.pokemon-stat__bar::-webkit-progress-value {
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+
+.pokemon-stat__bar::-moz-progress-bar {
+  border-radius: inherit;
+  background: var(--color-primary);
 }
 </style>
