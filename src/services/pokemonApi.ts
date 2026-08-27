@@ -103,3 +103,42 @@ export async function getEvolutionChain(url: string): Promise<EvolutionChainResp
 
   return data
 }
+export async function getPokemonDetailsWithSpecies(identifier: string): Promise<{
+  pokemon: PokemonDetailsResponse
+  species: PokemonSpeciesResponse
+}> {
+  const normalizedIdentifier = identifier.trim().toLowerCase()
+  let pokemonData: PokemonDetailsResponse
+  let speciesData: PokemonSpeciesResponse
+
+  try {
+    //Caso: identifier è gia un nome Pokemon valido
+    pokemonData = await getPokemonDetails(normalizedIdentifier)
+
+    //Ricaviamo il nome della specie dall'oggetto Pokemon
+    speciesData = await getPokemonSpecies(pokemonData.species.name)
+  } catch (err) {
+    if (!(err instanceof PokemonApiError) || err.status !== 404) {
+      throw err
+    }
+
+    //Caso identifier è un nome specie, ad esempio "Aegislash"
+    speciesData = await getPokemonSpecies(normalizedIdentifier)
+
+    const defaultVariety =
+      speciesData.varieties.find((variety) => {
+        return variety.is_default
+      }) ?? speciesData.varieties[0]
+
+    if (!defaultVariety) {
+      throw new PokemonApiError(`Nessuna varietà trovata per ${normalizedIdentifier}`, 404)
+    }
+
+    pokemonData = await getPokemonDetails(defaultVariety.pokemon.name)
+  }
+
+  return {
+    pokemon: pokemonData,
+    species: speciesData,
+  }
+}

@@ -1,26 +1,27 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { watch, ref, computed } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import type {
   PokemonDetailsResponse,
   PokemonSpeciesResponse,
   EvolutionChainResponse,
-  EvolutionNode,
 } from '@/types/pokemonTypes'
 import {
-  getPokemonDetails,
-  getPokemonSpecies,
+  getPokemonDetailsWithSpecies,
   PokemonApiError,
   getEvolutionChain,
+  getPokemonDetails,
 } from '@/services/pokemonApi'
 import { usePokemonFavorites } from '@/composables/usePokemonFavorites'
 import { useAsyncState } from '@/composables/useAsyncState'
 import PokemonImageToggle from '@/components/pokemon/PokemonImageToggle.vue'
+import EvolutionNodeItem from '@/components/pokemon/EvolutionNodeItem.vue'
 
 const { data: pokemon, loading, error, execute } = useAsyncState<PokemonDetailsResponse>()
 
 const species = ref<PokemonSpeciesResponse | null>(null)
 const evolutionChain = ref<EvolutionChainResponse | null>(null)
+const selectedVarietyName = ref('')
 
 const props = defineProps<{
   name: string
@@ -36,6 +37,7 @@ const favorite = computed(() => {
 
 const canRetry = ref<boolean>(false)
 const route = useRoute()
+const router = useRouter()
 
 function clearFlavorText(text: string): string {
   return text
@@ -80,21 +82,26 @@ const pokemonCategory = computed(() => {
   )
 })
 
-function flattenEvolutionChain(node: EvolutionNode): string[] {
-  const currentName = node.species.name
+// function flattenEvolutionChain(node: EvolutionNode): string[] {
+//   const currentName = node.species.name
 
-  const nextNames = node.evolves_to.flatMap((child) => {
-    return flattenEvolutionChain(child)
-  })
+//   const nextNames = node.evolves_to.flatMap((child) => {
+//     return flattenEvolutionChain(child)
+//   })
 
-  return [currentName, ...nextNames]
-}
+//   return [currentName, ...nextNames]
+// }
 
-const evolutionNames = computed(() => {
-  if (!evolutionChain.value) {
-    return []
-  }
-  return flattenEvolutionChain(evolutionChain.value.chain)
+// const evolutionNames = computed(() => {
+//   if (!evolutionChain.value) {
+//     return []
+//   }
+//   return flattenEvolutionChain(evolutionChain.value.chain)
+// })
+
+const hasEvolutions = computed(() => {
+  const chain = evolutionChain.value?.chain
+  return Boolean(chain && chain.evolves_to.length > 0)
 })
 
 function getPokemonDetailsError(error: unknown): string {
@@ -139,16 +146,24 @@ const returnType = computed(() => {
   return type
 })
 
+const availableVarieties = computed(() => {
+  return species.value?.varieties ?? []
+})
+
 async function loadPokemonDetails() {
   canRetry.value = false
   await execute(
     async () => {
-      const [pokemonData, speciesData] = await Promise.all([
-        getPokemonDetails(props.name),
-        getPokemonSpecies(props.name),
-      ])
+      const queryVariety = route.query.variety
+
+      const identifier =
+        typeof queryVariety === 'string' && queryVariety ? queryVariety : props.name
+
+      const { pokemon: pokemonData, species: speciesData } =
+        await getPokemonDetailsWithSpecies(identifier)
 
       species.value = speciesData
+      selectedVarietyName.value = pokemonData.name
 
       const evolutionData = await getEvolutionChain(speciesData.evolution_chain.url)
 
@@ -161,14 +176,42 @@ async function loadPokemonDetails() {
   )
 }
 
-onMounted(loadPokemonDetails)
+async function loadSelectedVariety() {
+  const varietyName = selectedVarietyName.value
+  if (!varietyName || varietyName === pokemon.value?.name) {
+    return
+  }
+
+  canRetry.value = false
+
+  await execute(() => getPokemonDetails(varietyName), getPokemonDetailsError)
+
+  if (!error.value) {
+    await router.replace({
+      query: {
+        ...route.query,
+        variety: varietyName,
+      },
+    })
+  }
+}
+
+watch(
+  () => props.name,
+  () => {
+    loadPokemonDetails()
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <main class="page-shell detail-page">
     <RouterLink
-      class="back-link"
       v-if="cameFromFavorites"
+      class="back-link"
       :to="{
         name: 'favorites',
       }"
@@ -177,7 +220,6 @@ onMounted(loadPokemonDetails)
     </RouterLink>
 
     <RouterLink
-      class="back-link"
       v-else
       :to="{
         name: 'pokemons',
@@ -214,13 +256,33 @@ onMounted(loadPokemonDetails)
       v-else-if="pokemon"
       class="pokemon-details"
     >
-      <h1 class="page-title">Dettaglio di {{ name }}</h1>
+      <h1 class="page-title">Dettaglio di {{ pokemon.name }}</h1>
       <PokemonImageToggle
         variant="detail"
         :normal-image="pokemon.sprites.front_default"
         :shiny-image="pokemon.sprites.front_shiny"
         :alt="`Immagine di ${pokemon.name}`"
       />
+
+      <section
+        v-if="availableVarieties.length > 1"
+        class="pokemon-varieties"
+      >
+        <label for="pokemon-variety">Variante:</label>
+        <select
+          id="pokemon-variety"
+          v-model="selectedVarietyName"
+          @change="loadSelectedVariety"
+        >
+          <option
+            v-for="variety in availableVarieties"
+            :key="variety.pokemon.name"
+            :value="variety.pokemon.name"
+          >
+            {{ variety.pokemon.name }}
+          </option>
+        </select>
+      </section>
 
       <section class="pokemon-description">
         <h2>Descrizione</h2>
@@ -232,20 +294,22 @@ onMounted(loadPokemonDetails)
         {{ pokemonCategory }}
       </p>
 
-      <ul
-        v-if="evolutionNames.length > 0"
+      <section
+        v-if="evolutionChain && hasEvolutions"
         class="pokemon-evolution"
       >
         <h2>Catena evolutiva</h2>
-        <ul>
-          <li
-            v-for="evolutionName in evolutionNames"
-            :key="evolutionName"
-          >
-            {{ evolutionName }}
-          </li>
+        <ul class="pokemon-evolution__list">
+          <EvolutionNodeItem :node="evolutionChain.chain" />
         </ul>
-      </ul>
+      </section>
+
+      <p
+        v-else-if="evolutionChain"
+        class="pokemon-evolution__empty"
+      >
+        Questo pokemon non ha evoluzioni
+      </p>
 
       <p>Altezza: {{ pokemon.height / 10 }} m</p>
       <p>Peso: {{ pokemon.weight / 10 }} kg</p>
@@ -372,6 +436,32 @@ onMounted(loadPokemonDetails)
   border-radius: 999px;
   background-color: var(--color-background-mute);
   accent-color: var(--color-primary);
+}
+
+.pokemon-evolution {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+}
+
+.pokemon-evolution h2 {
+  margin-bottom: 1rem;
+}
+
+.pokemon-evolution__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.pokemon-evolution__empty {
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 .pokemon-stat__bar::-webkit-progress-bar {

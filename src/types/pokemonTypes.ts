@@ -39,6 +39,7 @@ export interface PokemonDetailsResponse {
   name: string
   height: number
   weight: number
+  species: PokemonResult
   sprites: {
     front_default: string | null
     front_shiny: string | null
@@ -84,6 +85,7 @@ export interface PokemonSpeciesResponse {
   evolution_chain: {
     url: string
   }
+  varieties: PokemonSpeciesVariety[]
 }
 
 export interface EvolutionNode {
@@ -96,4 +98,9 @@ export interface EvolutionNode {
 
 export interface EvolutionChainResponse {
   chain: EvolutionNode
+}
+
+export interface PokemonSpeciesVariety {
+  is_default: boolean
+  pokemon: PokemonResult
 }
