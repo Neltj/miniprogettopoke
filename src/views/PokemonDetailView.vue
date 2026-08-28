@@ -10,7 +10,6 @@ import {
   getPokemonDetailsWithSpecies,
   PokemonApiError,
   getEvolutionChain,
-  getPokemonDetails,
 } from '@/services/pokemonApi'
 import { usePokemonFavorites } from '@/composables/usePokemonFavorites'
 import { useAsyncState } from '@/composables/useAsyncState'
@@ -32,7 +31,12 @@ const MAX_BASE_STAT = 255
 const { isFavorite, toggleFavorite } = usePokemonFavorites()
 
 const favorite = computed(() => {
-  return isFavorite(props.name)
+  const currentPokemonName = pokemon.value?.name
+  if (!currentPokemonName) {
+    return false
+  }
+
+  return isFavorite(currentPokemonName)
 })
 
 const canRetry = ref<boolean>(false)
@@ -182,22 +186,16 @@ async function loadSelectedVariety() {
     return
   }
 
-  canRetry.value = false
-
-  await execute(() => getPokemonDetails(varietyName), getPokemonDetailsError)
-
-  if (!error.value) {
-    await router.replace({
-      query: {
-        ...route.query,
-        variety: varietyName,
-      },
-    })
-  }
+  await router.replace({
+    query: {
+      ...route.query,
+      variety: varietyName,
+    },
+  })
 }
 
 watch(
-  () => props.name,
+  [() => props.name, () => route.query.variety],
   () => {
     loadPokemonDetails()
   },
@@ -364,7 +362,7 @@ watch(
         class="button"
         type="button"
         :aria-pressed="favorite"
-        @click="toggleFavorite(props.name)"
+        @click="toggleFavorite(pokemon.name)"
       >
         {{ favorite ? '★ Rimuovi dai preferiti' : '☆ Aggiungi ai preferiti' }}
       </button>
