@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>
+  <ThemeToggle />
+
   <header class="app-header">
     <img
       alt="pokelogo"

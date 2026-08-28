@@ -41,7 +41,7 @@ Il progetto è stato sviluppato per approfondire Vue 3 e il flusso completo di u
 - Ordinamento alfabetico dei preferiti e rimozione singola o completa.
 - Stati di caricamento, errore, retry, risultato vuoto e pagina 404.
 - Cache in memoria per ridurre le richieste ripetute alla PokéAPI.
-- Layout responsive con supporto automatico al tema chiaro/scuro del sistema.
+- Layout responsive con tema chiaro/scuro, toggle manuale e rilevamento iniziale del tema del sistema.
 
 ## Come usare l'app
 
@@ -119,6 +119,12 @@ I nomi dei preferiti vengono salvati nel browser con la chiave:
 pokemon-favorites
 ```
 
+La preferenza del tema viene salvata separatamente con la chiave:
+
+```text
+pokemon-theme
+```
+
 Il contenuto letto da `localStorage` viene validato prima dell'utilizzo. I preferiti rimangono disponibili dopo un refresh, ma sono locali al browser e al dispositivo in uso.
 
 Il servizio API utilizza inoltre cache basate su `Map` per:
@@ -153,6 +159,8 @@ Componenti principali:
 - `EvolutionNodeItem.vue`: componente ricorsivo che visualizza le evoluzioni annidate.
 - `useAsyncState.ts`: centralizza `loading`, `error`, `data` ed esecuzione delle Promise.
 - `usePokemonFavorites.ts`: gestisce preferiti reattivi e persistenza.
+- `useTheme.ts`: gestisce tema, persistenza e attributo globale `data-theme`.
+- `ThemeToggle.vue`: pulsante globale per alternare tema chiaro e scuro.
 - `pokemonApi.ts`: separa la comunicazione HTTP dall'interfaccia.
 
 ## Route
@@ -246,7 +254,7 @@ Se il repository viene rinominato, anche questo valore deve essere aggiornato.
 
 L'interfaccia include label associate agli input, pulsanti con stato `disabled`, attributi `aria-pressed`, messaggi aggiornati tramite `aria-live`, navigazione semantica e stati testuali alternativi quando un'immagine non è disponibile.
 
-La griglia, la navigazione, la ricerca e la paginazione si adattano agli schermi piccoli. Il tema segue automaticamente `prefers-color-scheme` del sistema operativo.
+La griglia, la navigazione, la ricerca e la paginazione si adattano agli schermi piccoli. Il tema parte da `prefers-color-scheme` se non esiste una preferenza salvata, ma il pulsante globale consente di sovrascriverlo manualmente.
 
 ## Limiti attuali e possibili sviluppi
 
