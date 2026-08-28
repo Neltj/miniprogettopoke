@@ -7,13 +7,18 @@ import type { PokemonDetailsResponse } from '@/types/pokemonTypes'
 import { getPokemonDetailsWithSpecies } from '@/services/pokemonApi'
 import router from '@/router'
 
+type FavoritePokemonItem = {
+  favoriteName: string
+  pokemon: PokemonDetailsResponse
+}
+
 const { favoriteNames, isFavorite, toggleFavorite, clearFavorites } = usePokemonFavorites()
 
-const { data: favoritePokemon, loading, error, execute } = useAsyncState<PokemonDetailsResponse[]>()
+const { data: favoritePokemon, loading, error, execute } = useAsyncState<FavoritePokemonItem[]>()
 
 const sortedFavoritePokemon = computed(() => {
   return [...(favoritePokemon.value ?? [])].sort((a, b) => {
-    return a.name.localeCompare(b.name)
+    return a.pokemon.name.localeCompare(b.pokemon.name)
   })
 })
 
@@ -44,9 +49,12 @@ async function loadFavoritePokemon(): Promise<void> {
 
   await execute(() => {
     return Promise.all(
-      favoriteNames.value.map(async (name) => {
-        const { pokemon } = await getPokemonDetailsWithSpecies(name)
-        return pokemon
+      favoriteNames.value.map(async (favoriteName) => {
+        const { pokemon } = await getPokemonDetailsWithSpecies(favoriteName)
+        return {
+          favoriteName,
+          pokemon,
+        }
       }),
     )
   }, 'Impossibile caricare i pokemon preferiti')
@@ -104,15 +112,15 @@ watch(favoriteNames, loadFavoritePokemon, { immediate: true })
       class="pokemon-grid"
     >
       <PokemonCard
-        v-for="pokemon in sortedFavoritePokemon"
-        :key="pokemon.name"
-        :name="pokemon.name"
-        :image="pokemon.sprites.front_default"
-        :shiny-image="pokemon.sprites.front_shiny"
-        :types="pokemon.types.map((pokemonType) => pokemonType.type.name)"
-        :favorite="isFavorite(pokemon.name)"
-        @select="goToPokemonDetails"
-        @toggle-favorite="toggleFavorite"
+        v-for="item in sortedFavoritePokemon"
+        :key="item.favoriteName"
+        :name="item.favoriteName"
+        :image="item.pokemon.sprites.front_default"
+        :shiny-image="item.pokemon.sprites.front_shiny"
+        :types="item.pokemon.types.map((pokemonType) => pokemonType.type.name)"
+        :favorite="isFavorite(item.favoriteName)"
+        @select="goToPokemonDetails(item.favoriteName)"
+        @toggle-favorite="toggleFavorite(item.favoriteName)"
       />
     </ul>
   </main>
