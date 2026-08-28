@@ -4,7 +4,7 @@ import { watch, computed } from 'vue'
 import { useAsyncState } from '@/composables/useAsyncState'
 import PokemonCard from '@/components/pokemon/PokemonCard.vue'
 import type { PokemonDetailsResponse } from '@/types/pokemonTypes'
-import { getPokemonDetails } from '@/services/pokemonApi'
+import { getPokemonDetailsWithSpecies } from '@/services/pokemonApi'
 import router from '@/router'
 
 const { favoriteNames, isFavorite, toggleFavorite, clearFavorites } = usePokemonFavorites()
@@ -44,8 +44,9 @@ async function loadFavoritePokemon(): Promise<void> {
 
   await execute(() => {
     return Promise.all(
-      favoriteNames.value.map((name) => {
-        return getPokemonDetails(name)
+      favoriteNames.value.map(async (name) => {
+        const { pokemon } = await getPokemonDetailsWithSpecies(name)
+        return pokemon
       }),
     )
   }, 'Impossibile caricare i pokemon preferiti')
